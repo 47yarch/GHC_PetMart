@@ -12,6 +12,9 @@
 - [About the Project](#about-the-project)
 - [Project Details](#project-details)
 - [Features](#features)
+- [Screenshots](#screenshots)
+- [System Architecture](#system-architecture)
+- [Database Architecture](#database-architecture)
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
 - [Requirements](#requirements)
@@ -102,6 +105,161 @@ The repository includes forms and code for the following areas. Availability of 
 
 </details>
 
+
+## Screenshots
+
+The screenshots below are stored in [`docs/screenshot/`](docs/screenshot/). Select a section to expand its screenshots.
+
+<details>
+<summary><strong>Startup, login, and registration</strong></summary>
+
+| Startup | Login | Register account |
+|---|---|---|
+| ![Startup screen](docs/screenshot/loading-start-up.png) | ![Login screen](docs/screenshot/login.png) | ![Register account screen](docs/screenshot/register-account.png) |
+
+</details>
+
+<details>
+<summary><strong>Dashboard, employee workspace, and POS</strong></summary>
+
+| Dashboard | Employee interface | Employee POS |
+|---|---|---|
+| ![Dashboard](docs/screenshot/dashboard.png) | ![Employee interface](docs/screenshot/employee-ui.png) | ![Employee POS](docs/screenshot/employee-POS.png) |
+
+</details>
+
+<details>
+<summary><strong>Customer shopping experience</strong></summary>
+
+| Shop | Cart | Order history | Profile settings |
+|---|---|---|---|
+| ![Customer shop](docs/screenshot/customer-ui.png) | ![Customer cart](docs/screenshot/customer-cart.png) | ![Customer order history](docs/screenshot/customer-order-history.png) | ![Customer profile settings](docs/screenshot/customer-profile-settings.png) |
+
+</details>
+
+<details>
+<summary><strong>Admin: products, inventory, and suppliers</strong></summary>
+
+| Product management | Inventory management | Supplier management |
+|---|---|---|
+| ![Product management](docs/screenshot/admin-product-management.png) | ![Inventory management](docs/screenshot/admin-inventory-management.png) | ![Supplier management](docs/screenshot/admin-supplier-management.png) |
+
+</details>
+
+<details>
+<summary><strong>Admin: purchase orders</strong></summary>
+
+| Purchase order management | Create purchase order |
+|---|---|
+| ![Purchase order management](docs/screenshot/admin-po-management.png) | ![Create purchase order](docs/screenshot/admin-creating-po-management.png) |
+
+</details>
+
+<details>
+<summary><strong>Admin: customers, employees, and users</strong></summary>
+
+| Customer management | Employee management | User management |
+|---|---|---|
+| ![Customer management](docs/screenshot/admin-customer-management.png) | ![Employee management](docs/screenshot/admin-employee-management.png) | ![User management](docs/screenshot/admin-user-management.png) |
+
+</details>
+
+<details>
+<summary><strong>Admin: expenses, sales history, and reports</strong></summary>
+
+| Expense management | Sales history | Reports |
+|---|---|---|
+| ![Expense management](docs/screenshot/admin-expense-management.png) | ![Sales history](docs/screenshot/admin-sales-history-management.png) | ![Report management](docs/screenshot/admin-report-management.png) |
+
+</details>
+
+## System Architecture
+
+The diagram below represents the high-level architecture inferred from the repository's Windows Forms application and shared MySQL connection code.
+
+```mermaid
+flowchart TD
+    U[Customer / Employee / Administrator] --> UI[Windows Forms Presentation Layer
+Login · Shop · Cart · POS · Admin Forms · Reports]
+    UI --> BL[Application Logic and Validation
+Form event handlers · calculations · workflows]
+    BL --> DAL[Database Access Layer
+DBConnection.vb · MySql.Data]
+    DAL --> DB[(MySQL Database
+ghc_petmart_3nf)]
+    BL --> REC[Receipt Generation
+ReceiptGenerator.vb]
+    BL --> REP[Report Generation
+iTextSharp / reporting components]
+    DB --> BL
+```
+
+**Typical request flow:** a user interacts with a Windows Form; the form's application logic validates input and performs the requested workflow; database operations go through the MySQL connection code; the result is displayed in the UI or used to produce a receipt/report.
+
+## Database Architecture
+
+The supplied SQL export defines 12 tables. The ER diagram below summarizes the foreign-key relationships declared in that schema.
+
+```mermaid
+erDiagram
+    tbl_users ||--o| tbl_customers : "user_id"
+    tbl_users ||--o{ tbl_cart : "user_id"
+    tbl_products ||--o{ tbl_cart : "product_id"
+    tbl_categories ||--o{ tbl_products : "category_id"
+    tbl_suppliers ||--o{ tbl_products : "supplier_id"
+    tbl_suppliers ||--o{ tbl_purchase_orders : "supplier_id"
+    tbl_users ||--o{ tbl_purchase_orders : "created_by"
+    tbl_purchase_orders ||--o{ tbl_po_details : "po_id"
+    tbl_products ||--o{ tbl_po_details : "product_id"
+    tbl_customers ||--o{ tbl_sales : "customer_id"
+    tbl_users ||--o{ tbl_sales : "employee_id"
+    tbl_sales ||--o{ tbl_sale_details : "sale_id"
+    tbl_products ||--o{ tbl_sale_details : "product_id"
+    tbl_products ||--o{ tbl_inventory_log : "product_id"
+    tbl_users ||--o{ tbl_inventory_log : "logged_by"
+    tbl_users ||--o{ tbl_expenses : "recorded_by"
+```
+
+### Table reference
+
+<details>
+<summary><strong>Accounts and customer data</strong></summary>
+
+- `tbl_users` — application user accounts and role-related information.
+- `tbl_customers` — customer records linked to user accounts where applicable.
+
+</details>
+
+<details>
+<summary><strong>Products and inventory</strong></summary>
+
+- `tbl_categories` — product categories.
+- `tbl_products` — product records, with category and supplier references.
+- `tbl_inventory_log` — inventory activity records linked to products and users.
+
+</details>
+
+<details>
+<summary><strong>Shopping and sales</strong></summary>
+
+- `tbl_cart` — cart entries associated with users and products.
+- `tbl_sales` — sales headers, including customer and employee references.
+- `tbl_sale_details` — line items associated with sales and products.
+
+</details>
+
+<details>
+<summary><strong>Purchasing and expenses</strong></summary>
+
+- `tbl_suppliers` — supplier records.
+- `tbl_purchase_orders` — purchase-order headers, associated with suppliers and the creating user.
+- `tbl_po_details` — purchase-order line items associated with products.
+- `tbl_expenses` — expenses recorded by users.
+
+</details>
+
+> **Schema note:** the ER diagram summarizes declared foreign keys in the supplied SQL export; it does not imply additional relationships where no foreign-key constraint is declared.
+
 ## Technology Stack
 
 - **VB.NET** — application logic
@@ -153,7 +311,7 @@ Before running the application, make sure you have:
 - Git, if you plan to clone/push using the command line
 - The database schema and any required seed/sample data for `ghc_petmart_3nf`
 
-> **Important:** The source connection settings identify the database name, but the repository archive inspected for this README did not contain a database `.sql` dump. You must obtain the correct schema/backup from the project authors or an existing project setup before the application can work fully. Do not assume that creating an empty database is sufficient.
+> **Important:** Import the project SQL export (for example, `ghc_petmart_3nf.sql`) if it is included in your checkout. If the SQL file is not committed to the repository, place your provided export in the project documentation or database folder and update the filename in the command below. Do not assume that creating an empty database is sufficient.
 
 ## Installation and Setup
 
@@ -177,11 +335,15 @@ Alternatively, open the repository page and choose **Code → Download ZIP**, th
 
 ### 3. Prepare the MySQL Database
 
-1. Obtain the project's actual SQL schema/backup and any required sample data from the repository or project authors.
-2. Open the `.sql` file in MySQL Workbench or your preferred MySQL client.
-3. Connect to the intended MySQL server.
-4. Execute/import the script.
-5. Confirm that the database named **`ghc_petmart_3nf`** exists and contains the tables expected by the application.
+1. Open MySQL Workbench (or your preferred MySQL client) and connect to your local MySQL server.
+2. Open and execute the project SQL export to create the `ghc_petmart_3nf` schema and tables. If using the MySQL command line and the SQL file is in the current directory, run:
+
+   ```bash
+   mysql -u root -p < ghc_petmart_3nf.sql
+   ```
+
+   Use the actual path and filename of your SQL export.
+4. Confirm that the tables were created and that the database named **`ghc_petmart_3nf`** contains the tables expected by the application.
 
 If you already have the database on your computer, verify its name and connection details before proceeding.
 
@@ -346,7 +508,7 @@ The project references Crystal Reports assemblies. If those references are unava
 ## Known Setup Notes
 
 - The connection configuration in `DBConnection.vb` currently uses a local MySQL server, database `ghc_petmart_3nf`, user `root`, and a blank password. Change these values to match your own environment.
-- The database schema/backup was not present in the source archive reviewed when preparing this README. A working database backup is therefore a required setup dependency.
+- The SQL export supplied for documentation defines 12 tables and the declared foreign-key relationships summarized in the Database Architecture section. Make sure the matching export is available locally before running the application.
 - The project targets **.NET Framework 4.7.2**, not modern .NET (such as .NET 8).
 - The code references MySQL Connector/NET and PDF/reporting dependencies; restore/install compatible dependencies before building.
 - Do not publish private database credentials, customer data, or real account passwords in source control.
